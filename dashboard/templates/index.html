@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cyber Defense Arsenal — Enterprise Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-main: #0c0e12;
+    --bg-sidebar: #13171f;
+    --bg-panel: #181d26;
+    --border-color: #242b35;
+    --text-main: #e2e8f0;
+    --text-muted: #64748b;
+    --neon-green: #10b981;
+    
+    --color-critical: #ef4444;
+    --color-high: #f97316;
+    --color-medium: #eab308;
+    --color-low: #3b82f6;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg-main);
+    color: var(--text-main);
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* شاشة الإنترو الترحيبية (The Cyber Shield Trailer Intro) */
+  #intro-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: #06080c; z-index: 99999;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    transition: opacity 0.8s ease-in-out, visibility 0.8s;
+  }
+
+  .shield-container {
+    position: relative;
+    animation: shieldPop 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  }
+
+  .cyber-shield {
+    width: 140px; height: 160px;
+    background: rgba(16, 185, 129, 0.03);
+    border: 3px solid var(--neon-green);
+    border-radius: 10px 10px 70px 70px;
+    box-shadow: 0 0 40px rgba(16, 185, 129, 0.4);
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .cyber-shield::after {
+    content: ''; position: absolute; top: 15px; bottom: 15px; left: 50%; width: 2px;
+    background: rgba(16, 185, 129, 0.3); transform: translateX(-50%);
+  }
+
+  .intro-text {
+    margin-top: 30px; font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; color: var(--neon-green); letter-spacing: 4px;
+    text-transform: uppercase; animation: pulseText 1.5s infinite;
+  }
+
+  @keyframes shieldPop {
+    0% { transform: scale(0.3) rotate(-45deg); opacity: 0; filter: blur(10px); }
+    70% { transform: scale(1.1) rotate(5deg); opacity: 0.9; }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; filter: blur(0); }
+  }
+  @keyframes pulseText { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+
+  /* الهيكل الأساسي لواجهة التحكم الرئيسية */
+  .sidebar {
+    width: 260px; background: var(--bg-sidebar); border-right: 1px solid var(--border-color);
+    display: flex; flex-direction: column; justify-content: space-between; padding: 24px;
+  }
+  .sidebar-brand h1 { font-size: 15px; font-weight: 700; letter-spacing: 1px; color: #fff; display: flex; align-items: center; gap: 10px; }
+  .sidebar-menu { margin-top: 40px; list-style: none; flex-grow: 1; }
+  
+  .sidebar-menu li {
+    padding: 12px 16px; border-radius: 6px; color: var(--text-muted); font-size: 14px;
+    font-weight: 500; cursor: pointer; margin-bottom: 6px; display: flex; align-items: center; gap: 10px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .sidebar-menu li:hover { background: rgba(255, 255, 255, 0.03); color: #fff; transform: translateX(4px); }
+  .sidebar-menu li.active { background: rgba(16, 185, 129, 0.08); color: var(--neon-green); border-left: 3px solid var(--neon-green); border-radius: 0 6px 6px 0; }
+
+  .system-meta { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted); border-top: 1px solid var(--border-color); padding-top: 16px; }
+
+  .main-content { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
+  header { height: 65px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 32px; background: var(--bg-sidebar); }
+  .status-indicator { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--neon-green); box-shadow: 0 0 8px var(--neon-green); }
+  .log-path-badge { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: var(--bg-main); padding: 4px 10px; border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-muted); }
+
+  .dashboard-view { flex-grow: 1; padding: 32px; overflow-y: auto; display: flex; flex-direction: column; gap: 24px; }
+  
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .stat-card { background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; height: 104px; }
+  .stat-header { display: flex; align-items: center; justify-content: space-between; font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .stat-indicator-bar { width: 4px; height: 12px; border-radius: 2px; }
+  .stat-card.critical .stat-indicator-bar { background: var(--color-critical); }
+  .stat-card.high .stat-indicator-bar { background: var(--color-high); }
+  .stat-card.medium .stat-indicator-bar { background: var(--color-medium); }
+  .stat-card.low .stat-indicator-bar { background: var(--color-low); }
+  .stat-number { font-family: 'JetBrains Mono', monospace; font-size: 32px; font-weight: 500; color: #fff; margin-top: 8px; }
+
+  .console-panel { background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 8px; display: flex; flex-direction: column; flex-grow: 1; min-height: 400px; }
+  .panel-header { padding: 16px 24px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+  .panel-header h2 { font-size: 14px; font-weight: 600; color: #fff; }
+  .table-container { overflow-y: auto; flex-grow: 1; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
+  th { background: rgba(0, 0, 0, 0.1); padding: 12px 24px; color: var(--text-muted); font-weight: 500; border-bottom: 1px solid var(--border-color); text-transform: uppercase; font-size: 11px; }
+  td { padding: 14px 24px; border-bottom: 1px solid var(--border-color); }
+  tr:last-child td { border-bottom: none; }
+
+  .timestamp-col { font-family: 'JetBrains Mono', monospace; color: var(--text-muted); }
+  .badge { display: inline-flex; align-items: center; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
+  .badge.critical { background: rgba(239, 68, 68, 0.1); color: var(--color-critical); }
+  .badge.high { background: rgba(249, 115, 22, 0.1); color: var(--color-high); }
+  .badge.medium { background: rgba(234, 179, 8, 0.1); color: var(--color-medium); }
+  .badge.low { background: rgba(59, 130, 246, 0.1); color: var(--color-low); }
+  .detection-title { font-weight: 500; color: #fff; margin-bottom: 2px; }
+  .detection-sub { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted); }
+  .ip-col { font-family: 'JetBrains Mono', monospace; color: #fff; }
+  .empty-state { padding: 48px; text-align: center; color: var(--text-muted); }
+
+  @keyframes highlightRow { from { background: rgba(16, 185, 129, 0.12); } to { background: transparent; } }
+  .new-row { animation: highlightRow 2s ease-out; }
+
+  /* النوافذ المنبثقة التفاعلية (Modals Layer) */
+  .modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(4, 6, 9, 0.75); backdrop-filter: blur(5px);
+    z-index: 1000; display: flex; align-items: center; justify-content: center;
+    opacity: 0; visibility: hidden; transition: all 0.3s ease;
+  }
+  .modal-overlay.active { opacity: 1; visibility: visible; }
+  
+  .modal-window {
+    background: var(--bg-panel); border: 1px solid var(--border-color);
+    width: 600px; border-radius: 8px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    transform: scale(0.9); transition: transform 0.3s ease; overflow: hidden;
+  }
+  .modal-overlay.active .modal-window { transform: scale(1); }
+
+  .modal-header { padding: 18px 24px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: var(--bg-sidebar); }
+  .modal-header h3 { font-size: 15px; font-weight: 600; color: #fff; }
+  .close-modal-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 20px; }
+  .close-modal-btn:hover { color: #fff; }
+  
+  .modal-body { padding: 24px; font-size: 14px; color: var(--text-main); line-height: 1.6; }
+  .config-preview { background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 6px; padding: 16px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #a0aec0; overflow-x: auto; white-space: pre-wrap; margin-top: 12px; }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.08); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--neon-green); }
+</style>
+</head>
+<body>
+
+  <div id="intro-overlay">
+    <div class="shield-container">
+      <div class="cyber-shield">
+        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+    </div>
+    <div class="intro-text">Initializing Defense Matrix...</div>
+  </div>
+
+  <aside class="sidebar">
+    <div>
+      <div class="sidebar-brand">
+        <h1>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          ARSENAL ENGINE
+        </h1>
+      </div>
+      <ul class="sidebar-menu">
+        <li class="active">Security Events</li>
+        <li onclick="openModal('patterns-modal')">Pattern Rules</li>
+        <li onclick="openModal('alerts-modal')">Alert Channels</li>
+        <li onclick="openModal('logs-modal')">System Architecture</li>
+      </ul>
+    </div>
+    
+    <div class="system-meta">
+      <div>Host: Localhost Console</div>
+      <div>Framework: MITRE ATT&CK</div>
+      <div id="sync-time">Sync: Loading...</div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header>
+      <div class="status-indicator">
+        <div class="status-dot"></div>
+        <span>MONITORING CORE ACTIVE</span>
+      </div>
+      <div class="log-path-badge">{{ log_path }}</div>
+    </header>
+
+    <div class="dashboard-view">
+      <section class="stats-grid">
+        <div class="stat-card critical">
+          <div class="stat-header"><span>Critical</span><div class="stat-indicator-bar"></div></div>
+          <div class="stat-number" id="count-critical">0</div>
+        </div>
+        <div class="stat-card high">
+          <div class="stat-header"><span>High</span><div class="stat-indicator-bar"></div></div>
+          <div class="stat-number" id="count-high">0</div>
+        </div>
+        <div class="stat-card medium">
+          <div class="stat-header"><span>Medium</span><div class="stat-indicator-bar"></div></div>
+          <div class="stat-number" id="count-medium">0</div>
+        </div>
+        <div class="stat-card low">
+          <div class="stat-header"><span>Low</span><div class="stat-indicator-bar"></div></div>
+          <div class="stat-number" id="count-low">0</div>
+        </div>
+      </section>
+
+      <section class="console-panel">
+        <div class="panel-header">
+          <h2>Live Security Ingestion Stream</h2>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 15%">Timestamp</th>
+                <th style="width: 12%">Severity</th>
+                <th style="width: 53%">Event Detection & Classification</th>
+                <th style="width: 20%">Source IP</th>
+              </tr>
+            </thead>
+            <tbody id="feed-body">
+              <tr>
+                <td colspan="4" class="empty-state">Awaiting system telemetry events...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="patterns-modal">
+    <div class="modal-window">
+      <div class="modal-header">
+        <h3>[Active Signatures & Patterns Engine]</h3>
+        <button class="close-modal-btn" onclick="closeModal('patterns-modal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>المنظومة تفحص وتطابق السطور حالياً باستخدام القواعد النشطة التالية:</p>
+        <div class="config-preview">• SSH Brute Force Detection (T1110)
+• SQL Injection Signatures (T1190)
+• Cross-Site Scripting Web Rules (T1190)
+• Path Traversal Discovery Protections (T1083)
+• OS Command Injection Probes (T1059)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="alerts-modal">
+    <div class="modal-window">
+      <div class="modal-header">
+        <h3>[Alert Delivery Configurations]</h3>
+        <button class="close-modal-btn" onclick="closeModal('alerts-modal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>قنوات الإرسال الحالية وقواعد تصفية التنبيهات المعتمدة داخل ملف الإعدادات:</p>
+        <div class="config-preview">Telegram Bot Alerting: Configured via config.json
+Email Notification Gateway: SMTP Protocol SSL/TLS
+Minimum Alarm Severity: >= MEDIUM
+Storage Engine: Local Persistent JSONL Log Storage</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="logs-modal">
+    <div class="modal-window">
+      <div class="modal-header">
+        <h3>[System Core Architecture Layers]</h3>
+        <button class="close-modal-btn" onclick="closeModal('logs-modal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>مخطط تدفق العمليات داخل نواة المنظومة الأمنية الحالية:</p>
+        <div class="config-preview">Layer 1: Log Collector (File Watcher Non-blocking Generator)
+Layer 2: Pattern Engine (Stateful Regex Inspection Matrix)
+Layer 3: Alert System (Dispatcher Threads Async Delivery)
+Layer 4: Dashboard Console (Read-only UI Web Thread)</div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  window.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+      const intro = document.getElementById('intro-overlay');
+      intro.style.opacity = '0';
+      setTimeout(() => intro.style.visibility = 'hidden', 800);
+    }, 1500);
+  });
+
+  function openModal(id) {
+    document.getElementById(id).classList.add('active');
+  }
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('active');
+  }
+
+  window.onclick = function(event) {
+    if (event.target.classList.contains('modal-overlay')) {
+      event.target.classList.remove('active');
+    }
+  }
+
+  let existingIds = new Set();
+  const pad = (num) => String(num).padStart(2, '0');
+
+  async function refresh() {
+    try {
+      const res = await fetch('/api/detections');
+      const data = await res.json();
+
+      document.getElementById('count-critical').textContent = data.by_severity.critical;
+      document.getElementById('count-high').textContent = data.by_severity.high;
+      document.getElementById('count-medium').textContent = data.by_severity.medium;
+      document.getElementById('count-low').textContent = data.by_severity.low;
+
+      const tbody = document.getElementById('feed-body');
+      
+      if (data.detections.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="empty-state">Awaiting system telemetry events...</td></tr>';
+      } else {
+        let htmlOutput = '';
+        data.detections.forEach((d, index) => {
+          const eventTime = new Date(d.timestamp);
+          const timeStr = pad(eventTime.getHours()) + ':' + pad(eventTime.getMinutes()) + ':' + pad(eventTime.getSeconds());
+          
+          const rowId = d.timestamp + d.pattern;
+          const isNew = !existingIds.has(rowId) && existingIds.size > 0;
+          
+          if (index < 100) existingIds.add(rowId);
+
+          htmlOutput += `
+            <tr class="${isNew ? 'new-row' : ''}">
+              <td class="timestamp-col">${timeStr}</td>
+              <td><span class="badge ${d.severity}">${d.severity}</span></td>
+              <td>
+                <div class="detection-title">${d.description}</div>
+                <div class="detection-sub">Rule: ${d.pattern} | Framework: MITRE ${d.mitre_id}</div>
+              </td>
+              <td class="ip-col">${d.source_ip || '—'}</td>
+            </tr>
+          `;
+        });
+        tbody.innerHTML = htmlOutput;
+      }
+      document.getElementById('sync-time').textContent = 'Sync: ' + new Date().toTimeString().split(' ')[0];
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  refresh();
+  setInterval(refresh, 2000);
+</script>
+</body>
+</html>
